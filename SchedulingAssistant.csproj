@@ -9,9 +9,6 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Dockerfile" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
     <PackageReference Include="DSharpPlus" Version="4.3.0" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.3.0" />
