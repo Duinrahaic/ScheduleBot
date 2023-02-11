@@ -3,7 +3,8 @@
 
 
 
-#Environment Variables
+Environment Variables
+
 Required:
 	DISCORD_BOT_TOKEN
 
