@@ -4,11 +4,7 @@ FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-WORKDIR /src
-COPY ["Schedulingassistant.csproj", "."]
-RUN dotnet restore "./Schedulingassistant.csproj"
-COPY . .
-WORKDIR "/src/."
+RUN dotnet restore "./Schedulingassistant.csproj"S
 RUN dotnet build "Schedulingassistant.csproj" -c Release -o /app/build
 
 FROM build AS publish
