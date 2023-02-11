@@ -1,10 +1,20 @@
 {
   "profiles": {
     "SchedulingAssistant": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "environmentVariables": {
+        "DISCORD_BOT_TOKEN": "MTA3MDgzNDA5NTMzNDExNzQyNw.GVE5rw.tk-nbQUPHOUBsZJ2xFktm8LybhIQHIJ59i63tA",
+        "DISCORD_BOT_DB_TYPE": "MySQL",
+        "DISCORD_BOT_CONNECTION_STRING": "Server=lin-14747-8728-mysql-primary.servers.linodedb.net;Database=Scheduling;Uid=linroot;Pwd=FoVLct2rmC44B-WX;SslMode=Preferred;"
+      }
     },
     "Docker": {
-      "commandName": "Docker"
+      "commandName": "Docker",
+      "environmentVariables": {
+        "DISCORD_BOT_DB_TYPE": "MySQL",
+        "DISCORD_BOT_CONNECTION_STRING": "Server=lin-14747-8728-mysql-primary.servers.linodedb.net;Database=Scheduling;Uid=linroot;Pwd=FoVLct2rmC44B-WX;SslMode=Preferred;",
+        "DISCORD_BOT_TOKEN": "MTA3MDgzNDA5NTMzNDExNzQyNw.GVE5rw.tk-nbQUPHOUBsZJ2xFktm8LybhIQHIJ59i63tA"
+      }
     }
   }
 }

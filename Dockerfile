@@ -3,10 +3,6 @@
 FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 WORKDIR /app
 
-ENV DISCORD_BOT_TOKEN=""\
-	DISCORD_BOT_DB_TYPE=""\
-	DISCORD_BOT_CONNECTION_STRING=""
-
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["Schedulingassistant.csproj", "."]
