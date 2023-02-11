@@ -3,9 +3,9 @@
 FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 WORKDIR /app
 
-ENV DISCORD_BOT_TOKEN="MTA3MDgzNDA5NTMzNDExNzQyNw.GVE5rw.tk-nbQUPHOUBsZJ2xFktm8LybhIQHIJ59i63tA"\
-	DISCORD_BOT_DB_TYPE="MySQL"\
-	DISCORD_BOT_CONNECTION_STRING="Server=lin-14747-8728-mysql-primary.servers.linodedb.net;Database=Scheduling;Uid=linroot;Pwd=FoVLct2rmC44B-WX;SslMode=Preferred;"
+ENV DISCORD_BOT_TOKEN=""\
+	DISCORD_BOT_DB_TYPE=""\
+	DISCORD_BOT_CONNECTION_STRING=""
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
