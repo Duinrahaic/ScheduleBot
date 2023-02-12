@@ -29,8 +29,7 @@ namespace SchedulingAssistant.Entities
         [Description("Name of Host")]
         public string HostName { get; set; }
         public string HostURL { get; set; }
-
-
+        public string? ImageURL { get; set; }
         //Truth Table:
         // IsActive == false && HasEnded == false: New Event
         // IsActive == true && HasEnded == false: Has Been Scheduled
@@ -43,7 +42,7 @@ namespace SchedulingAssistant.Entities
 
         public List<Attendence> Attendees { get; set; } = new List<Attendence>();
 
-        public Schedule(DateTime StartTime, DateTime EndTime,  ulong ServerId, string EventTitle, ulong HostId, string HostName, string HostURL, ulong? RoleId = null, ulong EventId = 0, string? EventDescription = "", string? WorldLink = null, string TimeZone = "Coordinated Universal Time")
+        public Schedule(DateTime StartTime, DateTime EndTime,  ulong ServerId, string EventTitle, ulong HostId, string HostName, string HostURL, ulong? RoleId = null, ulong EventId = 0, string? EventDescription = "", string? WorldLink = null, string TimeZone = "Coordinated Universal Time", string ImageURL = null)
         {
             if(TimeZone != null)
             {
@@ -68,6 +67,7 @@ namespace SchedulingAssistant.Entities
             this.WorldLink = WorldLink;
             this.HostName = HostName;
             this.HostURL = HostURL;
+            this.ImageURL = ImageURL;
         }
 
         public async Task Update()
@@ -94,6 +94,7 @@ namespace SchedulingAssistant.Entities
                     dbSchedule.IsActive = IsActive;
                     dbSchedule.HasEnded = HasEnded;
                     dbSchedule.HostURL = HostURL;
+                    dbSchedule.ImageURL = ImageURL;
                 }
                 else
                 {
@@ -164,6 +165,12 @@ namespace SchedulingAssistant.Entities
             DiscordEmbedBuilder Builder = new DiscordEmbedBuilder();
             Builder.Title = EventTitle;
             Builder.Description = EventDescription;
+            
+            if(ImageURL != null)
+            {
+                Builder.ImageUrl = ImageURL;
+            }
+
             if (WorldLink != null)
             {
                 Builder.WithUrl(WorldLink);
@@ -179,6 +186,9 @@ namespace SchedulingAssistant.Entities
 
             Builder.AddField("Host", $"<@{HostId}>",false);
             Builder.AddField("Profile", $"[Here]({HostURL})",false);
+
+
+            
 
 
             if (withInteractions)

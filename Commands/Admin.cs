@@ -176,8 +176,8 @@ namespace SchedulingAssistant.Commands
             [Option("Host", "User Hosting Event", false)] DiscordUser Host,
             [Option("ProfileURL", "VRC Profile User Hosting Event", false)] string HostURL,
             [Option("World", "Link to world", false)] string WorldLink = "",
-            [Option("TimeZone", "Fully Written Time Zone", false)] string TimeZoneName = "Coordinated Universal Time"
-
+            [Option("TimeZone", "Fully Written Time Zone", false)] string TimeZoneName = "Coordinated Universal Time",
+            [Option("ImageURL", "Image URL", false)] string Image = null
             )
         {
             
@@ -194,7 +194,17 @@ namespace SchedulingAssistant.Commands
 
                 try
                 {
-                    StartTime = DateTime.Parse(EventStart);
+                    Regex TimeCode = new Regex(@"\<t:(\d*):[a-zA-Z]{1}\>");
+                    if (TimeCode.IsMatch(EventStart))
+                    {
+                        long unixTimeStamp = long.Parse(TimeCode.Match(EventStart).Groups[1].Value);
+                        System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+                        StartTime = dtDateTime.AddSeconds(unixTimeStamp);
+                    }
+                    else
+                    {
+                        StartTime = DateTime.Parse(EventStart);
+                    }
                 }
                 catch
                 {
@@ -240,12 +250,24 @@ namespace SchedulingAssistant.Commands
                             return;
                         }
                     }
+                    if (!string.IsNullOrEmpty(Image))
+                    {
+                        if (!URL.IsMatch(Image))
+                        {
+                            await ctx.CreateResponseAsync(@$"Not a valid Image Link. Ensure link starts with http:// or https://", true);
+                            return;
+                        }
+                    }
+                    
                 }
                 catch
                 {
-                    await ctx.CreateResponseAsync(@$"Not a valid Host or World URL. Ensure link starts with http:// or https://", true);
+                    await ctx.CreateResponseAsync(@$"Not a valid Image, Host or World URL. Ensure link starts with http:// or https://", true);
                     return;
                 }
+
+
+
 
 
                 var RoleName = $"VODS-LessonRole-X";
@@ -266,13 +288,14 @@ namespace SchedulingAssistant.Commands
 
                 try
                 {
-                    Schedule NewEvent = new((DateTime)StartTime, (DateTime)EndTime, ctx.Guild.Id, EventName, Host.Id, Host.Username, HostURL, (ulong)DiscordRole.Id, TimeZone: TimeZoneName,  WorldLink: WorldLink, EventDescription: Description);
+                    Schedule NewEvent = new((DateTime)StartTime, (DateTime)EndTime, ctx.Guild.Id, EventName, Host.Id, Host.Username, HostURL, (ulong)DiscordRole.Id, TimeZone: TimeZoneName,  WorldLink: WorldLink, EventDescription: Description, ImageURL: Image);
                     await NewEvent.Update();
 
                     var dbEvent = db.Schedules.FirstOrDefault(x => x.RoleId == (ulong)DiscordRole.Id);
                     if (dbEvent != null)
                     {
                         DiscordMessageBuilder MBuilder = dbEvent.BuildMessage();
+                       
                         try
                         {
                             var Message = await ctx.Guild.GetChannel((ulong)ServerSetting.ChannelId).SendMessageAsync(MBuilder);
@@ -309,9 +332,9 @@ namespace SchedulingAssistant.Commands
             [Option("Duration", "How many hours till this event ends?", false)] double EventEnd = 0.0,
             [Option("Host", "User Hosting Event", false)] DiscordUser Host = null,
             [Option("ProfileURL", "VRC Profile User Hosting Event", false)] string HostURL = null,
-            [Option("World", "Link to world", false)] string? WorldLink = null,
-            [Option("TimeZone", "Fully Written Time Zone", false)] string TimeZoneName = null
-
+            [Option("World", "Link to world. Type 'clear' to remove link", false)] string? WorldLink = null,
+            [Option("TimeZone", "Fully Written Time Zone", false)] string TimeZoneName = null,
+            [Option("ImageURL", "Image URL. Type \'clear\' to remove link", false)] string Image = null
             )
         {
             Regex R = new Regex(@"([0-9]*)");
@@ -366,7 +389,18 @@ namespace SchedulingAssistant.Commands
                     try
                     {
                         DateTime? StartTime = null;
-                        StartTime = DateTime.Parse(EventStart);
+                        Regex TimeCode = new Regex(@"\<t:(\d*):[a-zA-Z]{1}\>");
+                        if (TimeCode.IsMatch(EventStart))
+                        {
+                            
+                            long unixTimeStamp = long.Parse(TimeCode.Match(EventStart).Groups[1].Value);
+                            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+                            StartTime = dtDateTime.AddSeconds(unixTimeStamp);
+                        }
+                        else
+                        {
+                            StartTime = DateTime.Parse(EventStart);
+                        }
                         Schedule.StartTime = StartTime.Value;
                     }
                     catch
@@ -424,29 +458,47 @@ namespace SchedulingAssistant.Commands
                             await ctx.CreateResponseAsync(@$"Not a valid Host URL. Ensure link starts with http:// or https://", true);
                             return;
                         }
-                        else
-                        {
-                            Schedule.HostURL = HostURL;
-                        }
+                        Schedule.HostURL = HostURL;
                     }
                     
 
                     if (!string.IsNullOrEmpty(WorldLink))
                     {
-                        if (!URL.IsMatch(WorldLink))
+                        if(WorldLink.Trim().ToLower() == "clear")
                         {
-                            await ctx.CreateResponseAsync(@$"Not a valid World Link. Ensure link starts with http:// or https://", true);
-                            return;
+                            Schedule.WorldLink = null;
+                        }
+                        else
+                        {
+                            if (!URL.IsMatch(WorldLink))
+                            {
+                                await ctx.CreateResponseAsync(@$"Not a valid World Link. Ensure link starts with http:// or https://", true);
+                                return;
+                            }
+                            Schedule.WorldLink = WorldLink;
                         }
                     }
-                    else
+
+                    if (!string.IsNullOrEmpty(Image))
                     {
-                        Schedule.WorldLink = WorldLink;
+                        if (Image.Trim().ToLower() == "clear")
+                        {
+                            Schedule.ImageURL = null;
+                        }
+                        else
+                        {
+                            if (!URL.IsMatch(Image))
+                            {
+                                await ctx.CreateResponseAsync(@$"Not a valid Image Link. Ensure link starts with http:// or https://", true);
+                                return;
+                            }
+                            Schedule.ImageURL = Image;
+                        }
                     }
                 }
                 catch
                 {
-                    await ctx.CreateResponseAsync(@$"Not a valid Host or World URL. Ensure link starts with http:// or https://", true);
+                    await ctx.CreateResponseAsync(@$"Not a valid Image, Host or World URL. Ensure link starts with http:// or https://", true);
                     return;
                 }
 

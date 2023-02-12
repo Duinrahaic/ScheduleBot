@@ -190,7 +190,7 @@ namespace SchedulingAssistant.Services
                                 DiscordRole? role = e.Guild.GetRole(TRoleId);
                                 if (role != null)
                                 {
-                                    if (Message.ToLower().Contains("Not"))
+                                    if (Message.ToLower().Contains("not"))
                                     {
                                         await DMT.RevokeRoleAsync(role);
                                     }
@@ -217,7 +217,7 @@ namespace SchedulingAssistant.Services
                                 DiscordRole? role = e.Guild.GetRole(ARoleId);
                                 if (role != null)
                                 {
-                                    if (Message.ToLower().Contains("Not"))
+                                    if (Message.ToLower().Contains("not"))
                                     {
                                         await DMA.RevokeRoleAsync(role);
                                     }
