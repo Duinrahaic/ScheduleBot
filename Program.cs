@@ -31,6 +31,7 @@ namespace SchedulingAssistant
                 {
                     Log.Logger.Error(ex.Message);
                 }
+                Task.Delay(5000);
             }
 
         }
