@@ -255,7 +255,7 @@ Available flags:
     R: Relative Time (e.g. 2 months ago, in an hour)
 
 */
-        public string GetStartTime(DiscordDateTimeFormatting DDTF = DiscordDateTimeFormatting.f)
+        public string GetStartTime(DiscordDateTimeFormatting DDTF = DiscordDateTimeFormatting.F)
         {
             var TZI = TimeZoneInfo.GetSystemTimeZones().FirstOrDefault(x => x.DisplayName.Contains(TimeZone));
             DateTimeOffset temp = TimeZoneInfo.ConvertTime(StartTime, TimeZoneInfo.Local, TZI);
