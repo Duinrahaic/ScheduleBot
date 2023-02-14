@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 using SchedulingAssistant.Models;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-
+using SchedulingAssistant.Utilities;
 
 namespace SchedulingAssistant.Entities
 {
@@ -185,8 +185,11 @@ namespace SchedulingAssistant.Entities
                 Builder.AddField("Event Occurs", $"{GetDiscordFormattedTimeMessage()} \n 🕑 Ended");
             }
 
-            Builder.AddField("Host", $"<@{HostId}>", false);
-            Builder.AddField("Profile", $"[Here]({HostURL})", false);
+            Builder.AddField("Google Calendar", $"[Add To Calendar]({GoogleCalendar.GetGoogleCalendarInvite(this.EventTitle, this.StartTime, this.EndTime, Description: this.EventDescription)})", false);
+
+            Builder.AddField("Host", $"<@{HostId}>", true);
+
+            Builder.AddField("Profile", $"[Here]({HostURL})", true);
 
 
 
