@@ -30,7 +30,8 @@ namespace SchedulingAssistant.Services
         public Task Initalize()
         {
             _logger.LogInformation("Initializing Scheduler!");
-            if(HeartBeatTimer == null) {
+            if (HeartBeatTimer == null)
+            {
                 HeartBeatTimer = new();
                 HeartBeatTimer.Stop();
                 HeartBeatTimer.AutoReset = true;
@@ -51,12 +52,12 @@ namespace SchedulingAssistant.Services
         // IsActive == false && HasEneded == true: Event Deleted
         private void HeartBeatTimer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            using(var db = new DBEntities())
+            using (var db = new DBEntities())
             {
                 List<ServerSetting> servers = db.ServerSettings.ToList();
                 //Get Schedule an hour before
-                List<Schedule> PreStartSchedules = db.Schedules.Where(x=>x.HasEnded == false && x.IsActive == false && x.ThreadId == null && x.StartTime <= DateTime.Now.AddHours(1)).ToList();
-                if(PreStartSchedules.Count > 0)
+                List<Schedule> PreStartSchedules = db.Schedules.Where(x => x.HasEnded == false && x.IsActive == false && x.ThreadId == null && x.StartTime <= DateTime.Now.AddHours(1)).ToList();
+                if (PreStartSchedules.Count > 0)
                 {
                     foreach (var schedule in PreStartSchedules)
                     {
@@ -72,7 +73,7 @@ namespace SchedulingAssistant.Services
                                     var thread = channel.CreateThreadAsync(message, $"{schedule.EventTitle}", AutoArchiveDuration.Week).GetAwaiter().GetResult();
                                     schedule.ThreadId = thread.Id;
                                     schedule.IsActive = true;
-                                    thread.SendMessageAsync($"Hey <@&{schedule.RoleId}>! The event \"{schedule.EventTitle}\" starts soon!");
+                                    thread.SendMessageAsync($"Hey <@&{schedule.RoleId}>! The event \"{schedule.EventTitle}\" starts soon! \n 🕑 {schedule.GetDiscordFormattedTimeStart()}");
                                 }
                                 catch
                                 {
@@ -86,7 +87,7 @@ namespace SchedulingAssistant.Services
                     }
                     db.SaveChanges();
                 }
-                
+
                 //List<Schedule> StartSchedules = db.Schedules.Where(x => x.HasEnded == false && x.IsActive == false && x.ThreadId !=null && x.StartTime <= DateTime.Now).ToList();
                 //foreach (var schedule in PreStartSchedules)
                 //{
@@ -99,7 +100,7 @@ namespace SchedulingAssistant.Services
 
 
                 List<Schedule> EndSchedules = db.Schedules.Where(x => x.HasEnded == false && x.IsActive == true && x.EndTime <= DateTime.Now).ToList();
-                if(EndSchedules.Count > 0)
+                if (EndSchedules.Count > 0)
                 {
                     foreach (var schedule in EndSchedules)
                     {
@@ -130,11 +131,11 @@ namespace SchedulingAssistant.Services
                                     {
 
                                     }
-                                    
+
                                 }
                                 schedule.IsActive = true;
                                 schedule.HasEnded = true;
-                                if(schedule.RoleId!= null)
+                                if (schedule.RoleId != null)
                                 {
                                     ulong DiscordRoleId = (ulong)schedule.RoleId;
                                     DiscordRole? DiscordRole = channel.Guild.GetRole(DiscordRoleId);
@@ -143,7 +144,7 @@ namespace SchedulingAssistant.Services
                                         DiscordRole.DeleteAsync().GetAwaiter();
                                     }
                                 }
-                                
+
                             }
 
                         }
@@ -152,7 +153,7 @@ namespace SchedulingAssistant.Services
 
                     db.SaveChanges();
                 }
-                
+
             }
         }
     }

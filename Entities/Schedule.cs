@@ -14,7 +14,7 @@ namespace SchedulingAssistant.Entities
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string TimeZone { get; set; }
-        public ulong ServerId {get; set; }
+        public ulong ServerId { get; set; }
         [Description("Message Id of the Event")]
         public ulong EventId { get; set; }
         [Description("Message Id of the Thread")]
@@ -36,15 +36,15 @@ namespace SchedulingAssistant.Entities
         // IsActive == true && HasEnded == true: Has Ended 
         // IsActive == false && HasEneded == true: Event Deleted
 
-        public bool IsActive { get; set; }  = false;
+        public bool IsActive { get; set; } = false;
         public bool HasEnded { get; set; } = false;
 
 
         public List<Attendence> Attendees { get; set; } = new List<Attendence>();
 
-        public Schedule(DateTime StartTime, DateTime EndTime,  ulong ServerId, string EventTitle, ulong HostId, string HostName, string HostURL, ulong? RoleId = null, ulong EventId = 0, string? EventDescription = "", string? WorldLink = null, string TimeZone = "Coordinated Universal Time", string ImageURL = null)
+        public Schedule(DateTime StartTime, DateTime EndTime, ulong ServerId, string EventTitle, ulong HostId, string HostName, string HostURL, ulong? RoleId = null, ulong EventId = 0, string? EventDescription = "", string? WorldLink = null, string TimeZone = "Coordinated Universal Time", string ImageURL = null)
         {
-            if(TimeZone != null)
+            if (TimeZone != null)
             {
                 TimeZoneInfo TZI = TimeZoneInfo.GetSystemTimeZones().FirstOrDefault(x => x.DisplayName.Contains(TimeZone));
                 this.StartTime = TimeZoneInfo.ConvertTime(StartTime, TZI, TimeZoneInfo.Local);
@@ -57,7 +57,7 @@ namespace SchedulingAssistant.Entities
                 this.EndTime = EndTime;
                 this.TimeZone = "Coordinated Universal Time";
             }
-            
+
             this.ServerId = ServerId;
             this.EventTitle = EventTitle;
             this.EventId = EventId;
@@ -72,9 +72,9 @@ namespace SchedulingAssistant.Entities
 
         public async Task Update()
         {
-            using(var db = new DBEntities())
+            using (var db = new DBEntities())
             {
-                var dbSchedule = db.Schedules.FirstOrDefault(x=>x.Id == this.Id);
+                var dbSchedule = db.Schedules.FirstOrDefault(x => x.Id == this.Id);
                 if (dbSchedule != null)
                 {
                     dbSchedule.StartTime = StartTime;
@@ -83,7 +83,7 @@ namespace SchedulingAssistant.Entities
                     dbSchedule.ServerId = ServerId;
                     dbSchedule.EventId = EventId;
                     dbSchedule.Attendees = Attendees;
-                    dbSchedule.ThreadId= ThreadId;
+                    dbSchedule.ThreadId = ThreadId;
                     dbSchedule.EventTitle = EventTitle;
                     dbSchedule.EventDescription = EventDescription;
                     dbSchedule.HostId = HostId;
@@ -105,15 +105,15 @@ namespace SchedulingAssistant.Entities
         }
 
 
-       
+
 
         public async Task<string> UpdateAttendee(ulong userId, string UserName, string State)
         {
             string Message = string.Empty;
-            using(var db = new DBEntities())
+            using (var db = new DBEntities())
             {
-                var dbAttendance = db.Attenants.FirstOrDefault(x=> (x.ScheduleId == this.Id) && (x.UserId == userId));
-                if(dbAttendance == null)
+                var dbAttendance = db.Attenants.FirstOrDefault(x => (x.ScheduleId == this.Id) && (x.UserId == userId));
+                if (dbAttendance == null)
                 {
                     Attendence New = new Attendence(this.Id, userId, UserName, State);
                     db.Attenants.Add(New);
@@ -121,7 +121,7 @@ namespace SchedulingAssistant.Entities
                 }
                 else
                 {
-                    if(dbAttendance.Status == State)
+                    if (dbAttendance.Status == State)
                     {
                         db.Remove(dbAttendance);
                         Message = $"Not {State}";
@@ -143,7 +143,7 @@ namespace SchedulingAssistant.Entities
             using (var db = new DBEntities())
             {
                 var dbSchedule = db.Schedules.FirstOrDefault(x => x.Id == this.Id);
-                if(dbSchedule != null)
+                if (dbSchedule != null)
                 {
                     db.Schedules.Remove(dbSchedule);
                     await db.SaveChangesAsync();
@@ -154,9 +154,10 @@ namespace SchedulingAssistant.Entities
         public DiscordMessageBuilder BuildMessage(bool withInteractions = true)
         {
             List<Attendence> Attendees = new List<Attendence>();
-            using(var db = new DBEntities()) {
+            using (var db = new DBEntities())
+            {
 
-                Attendees = db.Attenants.Where(x=>x.ScheduleId == this.Id).ToList();
+                Attendees = db.Attenants.Where(x => x.ScheduleId == this.Id).ToList();
             }
             DiscordButtonComponent AcceptButton = new(ButtonStyle.Primary, $"Accept_{this.Id}", "✅");
             DiscordButtonComponent TentativeButton = new(ButtonStyle.Primary, $"Tentative_{this.Id}", "☑️");
@@ -165,8 +166,8 @@ namespace SchedulingAssistant.Entities
             DiscordEmbedBuilder Builder = new DiscordEmbedBuilder();
             Builder.Title = EventTitle;
             Builder.Description = EventDescription;
-            
-            if(ImageURL != null)
+
+            if (ImageURL != null)
             {
                 Builder.ImageUrl = ImageURL;
             }
@@ -175,7 +176,7 @@ namespace SchedulingAssistant.Entities
             {
                 Builder.WithUrl(WorldLink);
             }
-            if(withInteractions)
+            if (withInteractions)
             {
                 Builder.AddField("Event Occurs", $"{GetDiscordFormattedTimeMessage()} \n 🕑 {GetDiscordFormattedTimeStart()}");
             }
@@ -184,11 +185,11 @@ namespace SchedulingAssistant.Entities
                 Builder.AddField("Event Occurs", $"{GetDiscordFormattedTimeMessage()} \n 🕑 Ended");
             }
 
-            Builder.AddField("Host", $"<@{HostId}>",false);
-            Builder.AddField("Profile", $"[Here]({HostURL})",false);
+            Builder.AddField("Host", $"<@{HostId}>", false);
+            Builder.AddField("Profile", $"[Here]({HostURL})", false);
 
 
-            
+
 
 
             if (withInteractions)
@@ -196,16 +197,16 @@ namespace SchedulingAssistant.Entities
                 Builder.AddField("Event Role", $"<@&{RoleId}>");
             }
 
-            var AttendanceBuilder =  Attendees.Where(x => x.Status == "Attending").Select(x => $"<@{x.UserId}>");
-            var TentativeBuilder =  Attendees.Where(x => x.Status == "Tentative").Select(x => $"<@{x.UserId}>");
-            
+            var AttendanceBuilder = Attendees.Where(x => x.Status == "Attending").Select(x => $"<@{x.UserId}>");
+            var TentativeBuilder = Attendees.Where(x => x.Status == "Tentative").Select(x => $"<@{x.UserId}>");
+
             int Max = new List<int>() { AttendanceBuilder.Count(), TentativeBuilder.Count(), 1 }.Max();
 
             // Danger: Zero Width character:
             char ZWC = '\u200B';
 
             string AttendanceMessage = string.Join("\n", AttendanceBuilder.Select(x => x.ToString()));
-            if(AttendanceBuilder.Count() > 0)
+            if (AttendanceBuilder.Count() > 0)
             {
                 AttendanceMessage = ">>> " + AttendanceMessage;
             }
@@ -220,11 +221,6 @@ namespace SchedulingAssistant.Entities
             TentativeMessage = TentativeMessage + new string(ZWC, Max - TentativeBuilder.Count());
             Builder.AddField($"☑️ Tentative ({TentativeBuilder.Count()})", TentativeMessage, true);
 
-            Builder.Footer = new()
-            {
-                Text = $"Event created by {HostName}",
-            };
-
             DiscordMessageBuilder MBuilder = new DiscordMessageBuilder().AddEmbed(Builder);
             if (withInteractions)
             {
@@ -233,7 +229,7 @@ namespace SchedulingAssistant.Entities
             return MBuilder;
         }
 
-        
+
 
         /*
 Use <t:TIMESTAMP:FLAG> to send it
@@ -290,12 +286,12 @@ Available flags:
             var Mins = TS.Minutes;
             string finalTimestamp = "";
 
-            if(Hours > 0)
+            if (Hours > 0)
             {
                 finalTimestamp = Hours.ToString() + " Hours ";
             }
 
-            if(Mins > 0)
+            if (Mins > 0)
             {
                 finalTimestamp = Mins.ToString() + " Mins";
             }
