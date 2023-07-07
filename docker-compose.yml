@@ -45,7 +45,7 @@ services:
             # Option B: Set if you want to use a special connection to your MySQL database  
             DISCORD_BOT_CONNECTION_STRING: '${DISCORD_BOT_CONNECTION_STRING}' # optional
 
-        image: 'duinrahaic\schedulebot:latest'
+        image: 'duinrahaic/schedulebot:latest'
         networks:
             - scheduleBot-network
         env_file:
