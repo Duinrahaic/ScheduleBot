@@ -4,12 +4,14 @@ using SchedulingAssistant.Models;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using SchedulingAssistant.Utilities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SchedulingAssistant.Entities
 {
     public partial class Schedule
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

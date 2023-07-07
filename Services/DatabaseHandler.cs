@@ -31,7 +31,15 @@ namespace SchedulingAssistant.Services
                             {
                                 _logger.LogInformation("Attempting to connect to database using connection string: {0}", db.Database.GetConnectionString() ?? "");
                                 db.Database.OpenConnection();
-                                db.Database.EnsureCreated();
+
+                                try
+                                {
+                                    db.Database.Migrate();
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogWarning("Cannot apply migrations: Migrations could possibly already been applied"); ;
+                                }
                             }
                             
                         }

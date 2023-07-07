@@ -1,9 +1,11 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
 using MySqlConnector;
 using Pomelo.EntityFrameworkCore;
+using System.Numerics;
 
 namespace SchedulingAssistant.Entities
 {
@@ -26,6 +28,9 @@ namespace SchedulingAssistant.Entities
                 ConnectionString = "server=" + Server + ";user=" + User + ";password=" + Pass + ";database=" + DB + ";";
             }
             
+
+
+
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 26));
             optionsBuilder.UseMySql(ConnectionString, serverVersion);
         }
