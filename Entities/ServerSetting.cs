@@ -1,15 +1,17 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SchedulingAssistant.Entities
 {
     public partial class ServerSetting
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
         public ulong ServerId { get; set; }
-        public ulong? ChannelId { get; set; }
-        public ulong? ThreadId { get; set; }
+        public ulong? ChannelId { get; set; } = default(ulong?);
+        public ulong? ThreadId { get; set; } = default(ulong?);
         public bool IsBanned { get; set; } = false;
         public ServerSetting(ulong ServerId)
         {

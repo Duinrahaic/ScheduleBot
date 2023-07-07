@@ -33,7 +33,6 @@ services:
         hostname: scheduleBot-bot
         restart: always
         environment:
-            DISCORD_BOT_SERVER: '${DISCORD_BOT_DB_TYPE}'
             DISCORD_BOT_TOKEN: '${DISCORD_BOT_TOKEN}'
             DISCORD_EVENT_ROLE_PREFIX: '${DISCORD_EVENT_ROLE_PREFIX}'
             # Option A: Use if you want to use a standard connection to your MySQL database

@@ -79,7 +79,7 @@ namespace SchedulingAssistant.Commands
             {
                 var ServerSetting = db.ServerSettings.FirstOrDefault(x => x.ServerId == ctx.Guild.Id) ?? new ServerSetting(ctx.Guild.Id);
                 ServerSetting.ChannelId = Channel.Id;
-
+                
                 try
                 {
                     await ServerSetting.Update();

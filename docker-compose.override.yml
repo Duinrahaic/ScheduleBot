@@ -1,1 +1,59 @@
-version: '3.4'
+version: '3.9'
+name: schedule-bot
+services:
+    db:
+        hostname: scheduleBot-db
+        image: mysql:8.0.26
+        cap_add:
+            - SYS_NICE
+        restart: always
+        environment:
+            MYSQL_DATABASE: '${MYSQL_DB}'
+            MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PW}'
+            MYSQL_USER: '${MYSQL_USER}'
+            MYSQL_PASSWORD: '${MYSQL_USER_PW}'
+        ports:
+            - '3306:3306'
+        volumes:
+            - db:/var/lib/mysql
+            - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+        networks:
+            - scheduleBot-network
+        env_file:
+            - .env
+        healthcheck:
+            test: ["CMD", "mysqladmin", "-u {MYSQL_USER}", "-p {MYSQL_USER_PW}",  "ping", "-h", "localhost"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+    bot:
+        depends_on:
+            db:
+                condition: service_healthy
+        hostname: scheduleBot-bot
+        restart: always
+        environment:
+            DISCORD_BOT_TOKEN: '${DISCORD_BOT_TOKEN}'
+            DISCORD_EVENT_ROLE_PREFIX: '${DISCORD_EVENT_ROLE_PREFIX}'
+            # Option A: Use if you want to use a standard connection to your MySQL database
+            MYSQL_SERVER: '${MYSQL_SERVER}' # optional (Default: scheduleBot-db)
+            MYSQL_DATABASE: '${MYSQL_DB}' # optional (Default: ScheduleBot)
+            MYSQL_USER: '${MYSQL_USER}' # optional (Default: scheduleBot)
+            MYSQL_PASSWORD: '${MYSQL_USER_PW}' # optional (Default: scheduleBot)
+
+            # Option B: Set if you want to use a special connection to your MySQL database  
+            DISCORD_BOT_CONNECTION_STRING: '${DISCORD_BOT_CONNECTION_STRING}' # optional
+
+        image: 'schedulingassistant:latest'
+        networks:
+            - scheduleBot-network
+        env_file:
+            - .env
+volumes:
+  db:
+    driver: local
+networks:
+    scheduleBot-network:
+        internal: false
+        driver: bridge
+        name: scheduleBot-network
