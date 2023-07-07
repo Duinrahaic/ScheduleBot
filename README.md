@@ -116,7 +116,7 @@ services:
             MYSQL_DATABASE: '${MYSQL_DB}' # optional (Default: ScheduleBot)
             MYSQL_USER: '${MYSQL_USER}' # optional (Default: scheduleBot)
             MYSQL_PASSWORD: '${MYSQL_USER_PW}' # optional (Default: scheduleBot)
-        image: 'duinrahaic\schedulebot:latest'
+        image: 'duinrahaic/schedulebot:latest'
         networks:
             - scheduleBot-network
         env_file:
@@ -153,7 +153,7 @@ services:
             MYSQL_USER: '${MYSQL_USER}' # optional (Default: scheduleBot)
             MYSQL_PASSWORD: '${MYSQL_USER_PW}' # optional (Default: scheduleBot)
             DISCORD_BOT_CONNECTION_STRING
-        image: 'duinrahaic\schedulebot:latest'
+        image: 'duinrahaic/schedulebot:latest'
         networks:
             - scheduleBot-network
         env_file:
@@ -237,7 +237,7 @@ Docker Image: [Here](https://hub.docker.com/r/duinrahaic/schedulebot)
 
 # Techincal Support
 
-If you need technical support with this project, please join the [Discord Server](https://discord.gg/3QxkZPK) or create an issue.
+If you need technical support with this project create an issue.
 
 # Donation Support
 
