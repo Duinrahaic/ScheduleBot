@@ -8,7 +8,7 @@ namespace SchedulingAssistant.Entities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        public int Id { get; set; }
         public ulong ServerId { get; set; }
         public ulong? ChannelId { get; set; } = default(ulong?);
         public ulong? ThreadId { get; set; } = default(ulong?);

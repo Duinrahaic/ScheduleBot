@@ -512,7 +512,7 @@ namespace SchedulingAssistant.Commands
                     await ctx.CreateResponseAsync($"Here you go!", true);
 
                 }
-                catch
+                catch(Exception ex) 
                 {
                     await DiscordRole.DeleteAsync();
                     await ctx.CreateResponseAsync($"There was an error making your event.", true);

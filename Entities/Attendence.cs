@@ -10,7 +10,6 @@ namespace SchedulingAssistant.Entities
 {
     public partial class Attendence
     {
-        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int ScheduleId { get; set; }

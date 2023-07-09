@@ -111,9 +111,9 @@ namespace SchedulingAssistant.Migrations
 
             modelBuilder.Entity("SchedulingAssistant.Entities.ServerSetting", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("int");
 
                     b.Property<ulong?>("ChannelId")
                         .HasColumnType("bigint unsigned");
