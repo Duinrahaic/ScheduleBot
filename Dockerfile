@@ -4,7 +4,7 @@ ARG NODE_VERSION=24.19.0
 FROM node:${NODE_VERSION}-bookworm-slim AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,id=schedulebot-npm,target=/root/.npm,sharing=locked npm ci
 
 FROM dependencies AS build
 COPY tsconfig.json tsconfig.build.json ./
@@ -14,7 +14,7 @@ RUN npm run build
 FROM node:${NODE_VERSION}-bookworm-slim AS production-dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev && npm cache clean --force
+RUN --mount=type=cache,id=schedulebot-npm,target=/root/.npm,sharing=locked npm ci --omit=dev
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 ARG VERSION=dev

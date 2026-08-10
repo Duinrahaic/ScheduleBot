@@ -178,8 +178,11 @@ describe.skipIf(!enabled)("MySQL integration", () => {
        WHERE table_schema = DATABASE()
          AND table_name = 'Attenants'
          AND index_name = 'UX_Attenants_ScheduleId_UserId'
-    `)) as [Array<{ nonUnique: number }>, unknown];
-    expect(indexes).toContainEqual({ nonUnique: 0 });
+    `)) as [Array<{ nonUnique: number | string }>, unknown];
+    expect(indexes.length).toBeGreaterThan(0);
+    expect(indexes.every(({ nonUnique }) => Number(nonUnique) === 0)).toBe(
+      true,
+    );
   });
 
   it("upgrades a legacy-compatible attendance table by deduplicating and adding uniqueness", async () => {
