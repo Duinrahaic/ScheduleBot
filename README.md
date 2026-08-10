@@ -1,5 +1,9 @@
 # ScheduleBot
 
+<p align="center">
+  <img src="Resources/ScheduleBotLogo.png" alt="ScheduleBot — An Automated Discord Event Bot">
+</p>
+
 ScheduleBot is a small, self-hosted Discord event bot written in strict TypeScript. It posts event cards, tracks attending/tentative responses, manages per-event roles and threads, produces CSV attendance reports, and runs lifecycle transitions before and after events.
 
 ![ScheduleBot example](Resources/ScheduleBotExample.png)
