@@ -65,9 +65,17 @@ npm start
 
 By default, the SQLite database is created at `./data/schedulebot.sqlite3`. Change its location with `SQLITE_FILE`.
 
-## Using MySQL
+## Selecting my database
 
-MySQL is only enabled when `DATABASE_TYPE` is explicitly set to `mysql`:
+ScheduleBot supports SQLite and MySQL. Choose the option that best fits your deployment.
+
+### SQLite (default)
+
+SQLite requires no separate database server and is the best choice for most installations. It is selected automatically when `DATABASE_TYPE` is omitted or set to `sqlite`. By default, data is stored in `./data/schedulebot.sqlite3` locally or in the `schedulebot-data` volume with Docker Compose.
+
+### MySQL
+
+Choose MySQL for an existing ScheduleBot database or when you already operate a MySQL server. MySQL is only enabled when `DATABASE_TYPE` is explicitly set to `mysql`:
 
 ```env
 DATABASE_TYPE=mysql
@@ -87,7 +95,7 @@ The database is only available on the private Compose network. The bot waits for
 
 Existing installations can continue using `MYSQL_SERVER`, `MYSQL_DB`, `MYSQL_USER`, and `MYSQL_USER_PW`. The aliases `MYSQL_DATABASE`, `MYSQL_PASSWORD`, and `DISCORD_BOT_CONNECTION_STRING` are also supported.
 
-### Upgrading from the legacy bot
+#### Upgrading from the legacy bot
 
 The TypeScript version keeps the original MySQL table and column names, including `Schedules`, `ServerSettings`, and the historical `Attenants` spelling. Existing Entity Framework-created tables are reused rather than replaced.
 
