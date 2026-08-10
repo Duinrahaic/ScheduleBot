@@ -65,7 +65,7 @@ npm start
 
 By default, the SQLite database is created at `./data/schedulebot.sqlite3`. Change its location with `SQLITE_FILE`.
 
-## Selecting my database
+## Database Selection
 
 ScheduleBot supports SQLite and MySQL. Choose the option that best fits your deployment.
 
@@ -164,7 +164,7 @@ npm audit --omit=dev
 
 `npm test` runs the test suite with V8 coverage. To run the MySQL integration tests, set `RUN_MYSQL_INTEGRATION=true` along with `MYSQL_TEST_HOST`, `MYSQL_TEST_DATABASE`, `MYSQL_TEST_USER`, and `MYSQL_TEST_PASSWORD`.
 
-> **Warning:** The MySQL integration suite resets its configured database. Never point it at production data.
+The MySQL suite only runs against an empty database whose name contains a separate `test` segment, such as `ScheduleBot_test`. It refuses to run if the safety checks fail, then creates and removes only the test tables it owns.
 
 CI runs formatting, linting, type checks, unit tests, MySQL integration tests, builds, dependency auditing, CodeQL, dependency review, and Trivy container scanning. Trusted pushes to `dev`, `master`, and `v*` tags publish multi-platform images to GitHub Container Registry only after validation and scanning succeed.
 
