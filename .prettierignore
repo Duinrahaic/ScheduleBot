@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+.pi-subagents
+.github/FUNDING.yml
+Resources
+package-lock.json

@@ -1,255 +1,112 @@
+# ScheduleBot
 
-![alt text](https://raw.githubusercontent.com/Duinrahaic/ScheduleBot/master/Resources/ScheduleBotLogo.png?token=GHSAT0AAAAAACEVC7KNJPX2H33RJJ4BMXIUZFHMXSA)
+ScheduleBot is a small, self-hosted Discord event bot written in strict TypeScript. It posts event cards, tracks attending/tentative responses, manages per-event roles and threads, produces CSV attendance reports, and runs lifecycle transitions before and after events.
 
-ScheduleBot is a open-source self-hosted Discord Event management bot. It's currently built to assist small-to-large discords community events.
+![ScheduleBot example](Resources/ScheduleBotExample.png)
 
+## Requirements
 
-![alt text](https://raw.githubusercontent.com/Duinrahaic/ScheduleBot/master/Resources/ScheduleBotExample.png?token=GHSAT0AAAAAACEVC7KMEWFLTWMZ56HD7NU6ZFHN4ZQ )
+- Node.js 22.13+ (current Node.js 24 LTS is used by Docker and CI)
+- A Discord application/bot token
+- SQLite (default) or MySQL 8
 
+Enable the **Server Members Intent** for the bot in the Discord Developer Portal. Invite it with the `bot` and `applications.commands` scopes. It needs View/Send Messages, Manage Messages, Manage Roles, Create Public Threads, Send Messages in Threads, and Manage Threads. Keep the bot's role above roles it creates.
 
+## Quick start with SQLite
 
-
-
-
-# Features
-
-- Create and mange events with one-line commands
-- Detailed event presentation
-- Creates and remove threads for events an hour before and after the event
-- Auto role management
-- Attendance tracking
-- Slash Commands
-- Containerized! (Docker)
-
-# Commands
-
-- `Refresh` - Refreshes the UI of the schedules
-- `SetEventChannel` - Sets the channel for the bot to post events
-- `GetAttendanceReport` - Gets attendance report between a date range. 
-- `Version` - Gets the current version of the bot
-- `RestartEvent` - Restarts an event
-- `Event` - Creates an event
-- `Edit` - Edits an event
-
-
-# How to use (Quick Start)
-
-## Create a discord bot
-
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a new application and give it a name.
-3. Got to the bot tab and create a new bot. Write down the token. (This is your DISCORD_BOT_TOKEN)
-4. Go to the general tab and copy the client ID. (This is your DISCORD_BOT_CLIENT_ID)
-5. To invite you the bot to your server, go to the following link and replace the CLIENT_ID with your DISCORD_BOT_CLIENT_ID: 
-
-           https://discord.com/oauth2/authorize?client_id=DISCORD_BOT_CLIENT_ID&scope=bot%20applications.commands&permissions=8
-
-## Docker Deployment
-
-This is the easiest way to get started. This will run the bot in a container. 
-
-### Windows
-1. Download and configure [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
-	- Windows: [Here](https://docs.docker.com/desktop/install/windows-install/)
-	- Mac: [Here](https://docs.docker.com/desktop/install/mac/)
-	- Linux: [Here](https://docs.docker.com/engine/install/ubuntu/)
-
-2. Install Docker Compose
-	- Windows: [Here](https://docs.docker.com/compose/install/)
-	- Mac: [Here](https://docs.docker.com/compose/install/)
-	- Linux: [Here](https://docs.docker.com/compose/install/)
-
-3. (Optional) If you plan on using your own MYSQL instance to store the data, you will need to install MySQL Server. 
-	- Windows: [Here](https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/windows-installation.html)
-	- Mac: [Here](https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/osx-installation-pkg.html)
-	- Linux: [Here](https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/linux-installation.html)
-	- Docker Image: [Here](https://hub.docker.com/_/mysql)
-
-3. Create a new folder called "Scheduling Bot" and navigate inside that folder. This is where your configuration and data will be stored.
-4. Create a file called docker-compose.yaml
-
-If you want to run the bot want to use the built-in MySQL database, your "docker-compose.yaml" file follow Option 1:
-
-</br>
-
-### Option 1: Using the built-in MySQL database
-Your "docker-compose.yaml" file should have the following content:
-```
-version: '3.9'
-name: schedule-bot
-services:
-    db:
-        hostname: scheduleBot-db
-        image: mysql:8.0.26
-        cap_add:
-            - SYS_NICE
-        restart: always
-        environment:
-            MYSQL_DATABASE: '${MYSQL_DB}'
-            MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PW}'
-            MYSQL_USER: '${MYSQL_USER}'
-            MYSQL_PASSWORD: '${MYSQL_USER_PW}'
-        ports:
-            - '3306:3306'
-        volumes:
-            - db:/var/lib/mysql
-            - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-        networks:
-            - scheduleBot-network
-        env_file:
-            - .env
-        healthcheck:
-            test: ["CMD", "mysqladmin", "-u {MYSQL_USER}", "-p {MYSQL_USER_PW}",  "ping", "-h", "localhost"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-    bot:
-        depends_on:
-            db:
-                condition: service_healthy
-        hostname: scheduleBot-bot
-        restart: always
-        environment:
-            DISCORD_BOT_TOKEN: '${DISCORD_BOT_TOKEN}'
-            DISCORD_EVENT_ROLE_PREFIX: '${DISCORD_EVENT_ROLE_PREFIX}'
-            MYSQL_SERVER: '${MYSQL_SERVER}' # optional (Default: scheduleBot-db)
-            MYSQL_DATABASE: '${MYSQL_DB}' # optional (Default: ScheduleBot)
-            MYSQL_USER: '${MYSQL_USER}' # optional (Default: scheduleBot)
-            MYSQL_PASSWORD: '${MYSQL_USER_PW}' # optional (Default: scheduleBot)
-        image: 'duinrahaic/schedulebot:latest'
-        networks:
-            - scheduleBot-network
-        env_file:
-            - .env
-volumes:
-  db:
-    driver: local
-networks:
-    scheduleBot-network:
-        internal: false
-        driver: bridge
-        name: scheduleBot-network
+```sh
+cp .env.example .env
+# Put the token in .env; DATABASE_TYPE=sqlite is already selected
+npm ci
+npm run build
+npm start
 ```
 
-<br>
+Then run `/seteventchannel`. SQLite data is stored at `SQLITE_FILE` (`./data/schedulebot.sqlite3` by default).
 
-### Optional 2: External MySQL Database
+With Docker Compose:
 
-```
-version: '3.9'
-name: schedule-bot
-services:
-    bot:
-        depends_on:
-            db:
-                condition: service_healthy
-        hostname: scheduleBot-bot
-        restart: always
-        environment:
-            DISCORD_BOT_TOKEN: '${DISCORD_BOT_TOKEN}'
-            DISCORD_EVENT_ROLE_PREFIX: '${DISCORD_EVENT_ROLE_PREFIX}' # optional (Default: EventRole)
-            MYSQL_SERVER: '${MYSQL_SERVER}' # optional (Default: scheduleBot-db)
-            MYSQL_DATABASE: '${MYSQL_DB}' # optional (Default: ScheduleBot)
-            MYSQL_USER: '${MYSQL_USER}' # optional (Default: scheduleBot)
-            MYSQL_PASSWORD: '${MYSQL_USER_PW}' # optional (Default: scheduleBot)
-            DISCORD_BOT_CONNECTION_STRING
-        image: 'duinrahaic/schedulebot:latest'
-        networks:
-            - scheduleBot-network
-        env_file:
-            - .env
-volumes:
-  db:
-    driver: local
-networks:
-    scheduleBot-network:
-        internal: false
-        driver: bridge
-        name: scheduleBot-network
+```sh
+cp .env.example .env
+# Edit DISCORD_BOT_TOKEN
+
+docker compose up -d --build
 ```
 
+The named `schedulebot-data` volume persists SQLite data. The service does not publish a host port; its internal `/health` endpoint is used by the image healthcheck.
 
+## MySQL
 
-<br>
+Existing deployments can retain the legacy variables `MYSQL_SERVER`, `MYSQL_DB`, `MYSQL_USER`, and `MYSQL_USER_PW`. `MYSQL_DATABASE`/`MYSQL_PASSWORD` aliases and `DISCORD_BOT_CONNECTION_STRING` are also accepted. Select MySQL explicitly:
 
-## Configuration:
-
-
-1. In the same folder, create a file called `.env`
-2. Your `.env` file should have the following content (depending on your database type):
-
-```
-#Environment Variables
-#Schedule bot
-DISCORD_BOT_TOKEN="YOUR_DISCORD_BOT_TOKEN_GOES_HERE" #Required
-DISCORD_EVENT_ROLE_PREFIX="EventRole" #Optional
-DISCORD_BOT_CONNECTION_STRING="" #Optional
-#DB
-MYSQL_SERVER="scheduleBot-db" #Required
-MYSQL_DB="ScheduleBot" #Required
-MYSQL_ROOT_PW="Password" #Required
-MYSQL_USER="schedulebot" #Required
-MYSQL_USER_PW="schedulebot" #Required
+```env
+DATABASE_TYPE=mysql
+MYSQL_SERVER=db
+MYSQL_DB=ScheduleBot
+MYSQL_USER=schedulebot
+MYSQL_USER_PW=a-strong-password
 ```
 
-##### Notice: Change your root and user passwords to something secure. This is the password for your database. 
+The Compose database requests a random root password from the official MySQL
+image; only the application user's strong password must be supplied. Missing or
+known placeholder application passwords are rejected at bot configuration time.
 
-3. Replace `YOUR_DISCORD_BOT_TOKEN_GOES_HERE` with your Discord Bot Token from step 3 of the "Create a discord bot" section.
-4. Open a command prompt and navigate to the folder you created in step 3 of the "Docker Deployment" section.
-5. Run the following command: `docker-compose up -d`
-6. Invite the bot to your server(s) using the link from step 5.
-7. Use '/seteventchannel' and tag your event channel. This is where your bot will post about events.
-8. You should now be able to use the bot in your server(s).
+Start the Compose MySQL profile:
 
-## Configuration Properties:
+```sh
+docker compose --profile mysql up -d --build
+```
 
-| Property Name | Description | Default Value | Optional |
-| ------------- | ----------- | ------------- | -------- |
-| DISCORD_BOT_TOKEN | The token of your discord bot. | | No |
-| DISCORD_EVENT_ROLE_PREFIX | The prefix for the event roles. This will be used as a prefix when generating roles.| EventRole | Yes |
-| DISCORD_BOT_CONNECTION_STRING | The connection string for the database. Leave blank if not in use. | | Yes |
-| MYSQL_SERVER | The hostname of the MySQL server. | scheduleBot-db | No |
-| MYSQL_DB | The name of the MySQL database. | ScheduleBot | No |
-| MYSQL_ROOT_PW | The password of the MySQL root user. | Password | No |
-| MYSQL_USER | The username of the MySQL user. | schedulebot | No |
-| MYSQL_USER_PW | The password of the MySQL user. | schedulebot | No |
+MySQL is only on the private Compose network and is not published to the host. There is no `init.sql`: the bot creates missing tables itself after MySQL becomes healthy.
 
+### Compatibility and migration notes
 
-</br> 
+The TypeScript version deliberately retains the legacy table and column names: `Schedules`, `ServerSettings`, and the historical misspelling `Attenants`. Discord snowflakes remain `BIGINT UNSIGNED` in MySQL and are handled as strings by the application so they do not lose precision. Signed `int` primary/foreign keys match the legacy EF schema exactly. Existing EF-created MySQL tables are used in place; startup creates absent tables and adds the composite attendance uniqueness invariant after deterministically removing legacy duplicates.
 
-### Docker Commands
+Before changing versions or database engines, stop the old bot and take a database backup. To keep an existing MySQL database, point this bot at it using the variables above—do not initialize a second schema. Moving records between MySQL and SQLite is not automatic; use a database export/import tool that preserves names, UTC timestamps, boolean values, primary keys, and snowflakes as text/integer values. Test a copy first. SQLite uses text snowflakes to avoid JavaScript/SQLite numeric precision loss.
 
-- `docker-compose up -d` - Starts the bot
-- `docker-compose down` - Stops the bot
-- `docker logs Schedule-Bot` - Shows the logs of the bot
+## Commands and controls
 
-</br>  
+Commands require Manage Messages by default:
 
+- `/seteventchannel` — choose the event channel
+- `/event` — create an event from an ISO date/time or Discord timestamp
+- `/edit` — edit an event by its Discord message ID
+- `/restartevent` — reactivate an ended event and restore attendee roles
+- `/refresh` — rebuild active event messages
+- `/getattendancereport` — DM a CSV for an IANA-zone date range
+- `/version` — show the running version
 
-# License 
+Event cards have Attend, Tentative, and Delete buttons. Selecting the current attendance state again removes it; switching changes it. Delete opens a typed confirmation and authorization is checked again when submitted.
 
-This project is licensed under the MIT License. You can find the license [here](https://github.com/Duinrahaic/SchedulingDiscordBot/blob/98d17f5d50a274a6961871b2814ef0d4a73cf1c0/LICENSE.txt)
+The scheduler creates a thread and announces the event one hour before start, marks the card ended at end time, and archives the thread/deletes the role one hour later. Intervals are configurable in `.env.example`; ticks never overlap.
 
-# Docker Hub 
-Docker Image: [Here](https://hub.docker.com/r/duinrahaic/schedulebot)
+## Dates
 
-`docker pull duinrahaic/schedulebot:latest`
+Use ISO 8601 values, preferably with an offset (`2026-04-15T19:00:00-04:00`), or a Discord timestamp such as `<t:1776294000:F>`. If an ISO value has no offset, the command's IANA timezone (for example `America/New_York`) is applied. Data is stored and compared in UTC.
 
-# Techincal Support
+## Development
 
-If you need technical support with this project create an issue.
+```sh
+npm ci
+npm run format:check
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm audit --omit=dev
+```
 
-# Donation Support
+`npm test` collects V8 coverage. The MySQL integration suite is enabled with `RUN_MYSQL_INTEGRATION=true` plus `MYSQL_TEST_HOST`, `MYSQL_TEST_DATABASE`, `MYSQL_TEST_USER`, and `MYSQL_TEST_PASSWORD`; it resets that dedicated test database, so never point it at production. CI provisions MySQL and always runs this path. Attendance callback/toggle sequencing is serialized per event only within one bot process; the database unique index prevents duplicate attendance rows across processes. Security workflows run CodeQL, dependency review, npm audit, and a Trivy container scan. Trusted pushes to `dev`/`master` and `v*` tags publish a multi-platform GHCR image only after validation and a container scan; pull requests never publish. The prepublish scan covers a reproducible default-platform container build rather than the exact multi-architecture manifest, which remains a publication-pipeline limitation.
 
-If you would like to support this project, you can do so via donations [here](https://ko-fi.com/duinrahaic)
+The dependency set uses current compatible stable releases. TypeScript is intentionally held on 5.9 because the current `typescript-eslint` peer range is below TypeScript 6.1. Docker uses the official mutable multi-architecture Node and MySQL tags rather than unverifiable single-architecture digest pins; Dependabot tracks those tags.
 
-If you want to support me long term you can subscribe to my [Patreon](https://www.patreon.com/duinrahaic)
+## Configuration
 
-# Contributing
+See [`.env.example`](.env.example). `DATABASE_TYPE` defaults to `sqlite` when omitted and must be set explicitly to `mysql` for MySQL. SQLite Compose startup requires no database credentials. Legacy MySQL connection strings accept common `Server`/`Host`/`Data Source`, `User`/`User Id`/`Uid`, `Password`/`Pwd`, and `Database`/`Initial Catalog` aliases. Credentials and tokens are never printed by the bot. Invalid configuration fails startup with a clear error.
 
-If you would like to contribute to this project, please create a pull request. If you have any questions, please create an issue.
+The Compose bot runs with a read-only root filesystem, no Linux capabilities, no-new-privileges, a bounded PID count, and a temporary `/tmp`; `/app/data` remains writable for SQLite.
 
-# Credits
+## License and support
 
-- [dsharpplus.net](https://dsharpplus.net/) - Discord API Wrapper
-- [Logo](https://twitter.com/Wishes_4_Fishes/) - Logo Designer
+Licensed under the [MIT License](LICENSE.txt). Please use the repository issue tracker for support. Funding links are in [`.github/FUNDING.yml`](.github/FUNDING.yml).

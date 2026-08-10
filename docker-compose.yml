@@ -1,59 +1,71 @@
-version: '3.9'
 name: schedule-bot
+
 services:
-    db:
-        hostname: scheduleBot-db
-        image: mysql:8.0.26
-        cap_add:
-            - SYS_NICE
-        restart: always
-        environment:
-            MYSQL_DATABASE: '${MYSQL_DB}'
-            MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PW}'
-            MYSQL_USER: '${MYSQL_USER}'
-            MYSQL_PASSWORD: '${MYSQL_USER_PW}'
-        ports:
-            - '3306:3306'
-        volumes:
-            - db:/var/lib/mysql
-            - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-        networks:
-            - scheduleBot-network
-        env_file:
-            - .env
-        healthcheck:
-            test: ["CMD", "mysqladmin", "-u {MYSQL_USER}", "-p {MYSQL_USER_PW}",  "ping", "-h", "localhost"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-    bot:
-        depends_on:
-            db:
-                condition: service_healthy
-        hostname: scheduleBot-bot
-        restart: always
-        environment:
-            DISCORD_BOT_TOKEN: '${DISCORD_BOT_TOKEN}'
-            DISCORD_EVENT_ROLE_PREFIX: '${DISCORD_EVENT_ROLE_PREFIX}'
-            # Option A: Use if you want to use a standard connection to your MySQL database
-            MYSQL_SERVER: '${MYSQL_SERVER}' # optional (Default: scheduleBot-db)
-            MYSQL_DATABASE: '${MYSQL_DB}' # optional (Default: ScheduleBot)
-            MYSQL_USER: '${MYSQL_USER}' # optional (Default: scheduleBot)
-            MYSQL_PASSWORD: '${MYSQL_USER_PW}' # optional (Default: scheduleBot)
+  bot:
+    build: .
+    image: ${SCHEDULEBOT_IMAGE:-schedulebot:local}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:?Set DISCORD_BOT_TOKEN}
+      DISCORD_EVENT_ROLE_PREFIX: ${DISCORD_EVENT_ROLE_PREFIX:-EventRole}
+      DATABASE_TYPE: ${DATABASE_TYPE:-sqlite}
+      SQLITE_FILE: ${SQLITE_FILE:-/app/data/schedulebot.sqlite3}
+      MYSQL_SERVER: ${MYSQL_SERVER:-db}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_DB: ${MYSQL_DB:-ScheduleBot}
+      MYSQL_USER: ${MYSQL_USER:-schedulebot}
+      MYSQL_USER_PW: ${MYSQL_USER_PW:-change-me}
+      DISCORD_BOT_CONNECTION_STRING: ${DISCORD_BOT_CONNECTION_STRING:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      HEALTH_PORT: ${HEALTH_PORT:-3000}
+      SCHEDULER_INTERVAL_MS: ${SCHEDULER_INTERVAL_MS:-60000}
+      SCHEDULER_LEAD_MINUTES: ${SCHEDULER_LEAD_MINUTES:-60}
+      CLEANUP_DELAY_MINUTES: ${CLEANUP_DELAY_MINUTES:-60}
+    volumes:
+      - schedulebot-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+    networks:
+      - schedulebot
 
-            # Option B: Set if you want to use a special connection to your MySQL database  
-            DISCORD_BOT_CONNECTION_STRING: '${DISCORD_BOT_CONNECTION_STRING}' # optional
-
-        image: 'duinrahaic/schedulebot:latest'
-        networks:
-            - scheduleBot-network
-        env_file:
-            - .env
-volumes:
   db:
-    driver: local
+    image: mysql:8.4
+    profiles: [mysql]
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB:-ScheduleBot}
+      MYSQL_USER: ${MYSQL_USER:-schedulebot}
+      MYSQL_PASSWORD: ${MYSQL_USER_PW:-change-me}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - schedulebot
+
+volumes:
+  schedulebot-data:
+  mysql-data:
+
 networks:
-    scheduleBot-network:
-        internal: false
-        driver: bridge
-        name: scheduleBot-network
+  schedulebot:
+    driver: bridge
