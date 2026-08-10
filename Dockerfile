@@ -29,7 +29,14 @@ LABEL org.opencontainers.image.title="ScheduleBot" \
       org.opencontainers.image.licenses="MIT"
 ENV NODE_ENV=production HEALTH_PORT=3000 SQLITE_FILE=/app/data/schedulebot.sqlite3
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && rm -rf /var/lib/apt/lists/* && mkdir -p /app/data && chown node:node /app/data
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends dumb-init \
+    && rm -rf /var/lib/apt/lists/* \
+        /usr/local/lib/node_modules/npm \
+        /usr/local/bin/npm \
+        /usr/local/bin/npx \
+    && mkdir -p /app/data \
+    && chown node:node /app/data
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json ./
