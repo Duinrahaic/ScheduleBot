@@ -23,12 +23,35 @@ const mysqlConfig: Config = {
   logLevel: "error",
 };
 
-async function reset(db: Knex): Promise<void> {
-  await db.raw("SET FOREIGN_KEY_CHECKS = 0");
+async function assertSafeTestDatabase(db: Knex): Promise<void> {
+  const [databaseRows] = (await db.raw(
+    "SELECT DATABASE() AS databaseName",
+  )) as [Array<{ databaseName: string | null }>, unknown];
+  const databaseName = databaseRows[0]?.databaseName;
+
+  if (!databaseName || !/(?:^|[_-])test(?:$|[_-])/i.test(databaseName)) {
+    throw new Error(
+      `Refusing to run MySQL integration tests against '${databaseName ?? "unknown"}'. The database name must contain a separate 'test' segment.`,
+    );
+  }
+
+  const [tables] = (await db.raw(`
+    SELECT TABLE_NAME AS tableName
+      FROM information_schema.tables
+     WHERE table_schema = DATABASE()
+  `)) as [Array<{ tableName: string }>, unknown];
+
+  if (tables.length > 0) {
+    throw new Error(
+      `Refusing to run MySQL integration tests because '${databaseName}' is not empty. Use a new, dedicated test database.`,
+    );
+  }
+}
+
+async function dropTestSchema(db: Knex): Promise<void> {
   await db.schema.dropTableIfExists("Attenants");
   await db.schema.dropTableIfExists("ServerSettings");
   await db.schema.dropTableIfExists("Schedules");
-  await db.raw("SET FOREIGN_KEY_CHECKS = 1");
 }
 
 describe.skipIf(!enabled)("MySQL integration", () => {
@@ -36,18 +59,20 @@ describe.skipIf(!enabled)("MySQL integration", () => {
   let secondDatabase: Knex;
   let repository: Repository;
   let secondRepository: Repository;
+  let ownsTestSchema = false;
 
   beforeAll(async () => {
     database = createDatabase(mysqlConfig);
     secondDatabase = createDatabase(mysqlConfig);
-    await reset(database);
+    await assertSafeTestDatabase(database);
+    ownsTestSchema = true;
     await ensureSchema(database, "mysql");
     repository = new Repository(database);
     secondRepository = new Repository(secondDatabase);
   }, 30_000);
 
   afterAll(async () => {
-    if (database) await reset(database);
+    if (database && ownsTestSchema) await dropTestSchema(database);
     if (secondDatabase) await secondDatabase.destroy();
     if (database) await database.destroy();
   });
