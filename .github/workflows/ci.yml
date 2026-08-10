@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [master, dev]
+    tags: ["v*"]
+  pull_request:
+    branches: [master, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: ScheduleBot_test
+          MYSQL_USER: schedulebot
+          MYSQL_PASSWORD: integration-secret
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uschedulebot -pintegration-secret --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      RUN_MYSQL_INTEGRATION: "true"
+      MYSQL_TEST_HOST: 127.0.0.1
+      MYSQL_TEST_DATABASE: ScheduleBot_test
+      MYSQL_TEST_USER: schedulebot
+      MYSQL_TEST_PASSWORD: integration-secret
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --audit-level=high
+      - run: npm audit --omit=dev --audit-level=high
